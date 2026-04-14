@@ -71,6 +71,14 @@ class AuthService {
     }
   }
 
+  /// Create or update user profile in Firestore.
+  static Future<void> createOrUpdateUser(UserModel user) async {
+    await _firestore.collection('users').doc(user.uid).set(
+      user.toFirestore(),
+      SetOptions(merge: true),
+    );
+  }
+
   /// Stream user profile updates.
   static Stream<UserModel?> streamUserProfile(String uid) {
     return _firestore.collection('users').doc(uid).snapshots().map(

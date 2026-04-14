@@ -2,15 +2,17 @@ import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 
 /// Email service using EmailJS for sending real emails from Flutter Web.
-/// EmailJS is loaded via CDN in index.html.
+/// EmailJS is loaded via CDN in index.html with helper functions.
 class EmailService {
-  static const String _serviceId = 'YOUR_EMAILJS_SERVICE_ID'; // TODO: Fill in
-  static const String _publicKey = 'YOUR_EMAILJS_PUBLIC_KEY'; // TODO: Fill in
+  // TODO: Create a free account at https://emailjs.com
+  // TODO: Fill in your Service ID and Public Key below
+  static const String _serviceId = 'YOUR_EMAILJS_SERVICE_ID';
+  static const String _publicKey = 'YOUR_EMAILJS_PUBLIC_KEY';
 
   /// Initialize EmailJS.
   static void init() {
     try {
-      _callEmailJS('init', _publicKey);
+      _callInitEmailJS(_publicKey.toJS);
     } catch (_) {
       // EmailJS not loaded — emails will be skipped
     }
@@ -110,23 +112,30 @@ class EmailService {
     }
   }
 
-  /// Internal method to call EmailJS send.
+  /// Internal method to call EmailJS send via JS interop.
   static Future<void> _send(String templateId, Map<String, String> params) async {
     try {
-      // Use JS interop to call emailjs.send()
       final jsParams = params.jsify();
-      _callEmailJSSend(_serviceId, templateId, jsParams);
+      _callSendEmailJS(
+        _serviceId.toJS,
+        templateId.toJS,
+        jsParams,
+        _publicKey.toJS,
+      );
     } catch (_) {
       // Silently fail — EmailJS may not be configured yet
     }
   }
-
-  static void _callEmailJS(String method, String param) {
-    // This will be handled via JS interop in index.html
-  }
-
-  static void _callEmailJSSend(String serviceId, String templateId, JSAny params) {
-    // Actual EmailJS call via JS interop
-    // emailjs.send(serviceId, templateId, params)
-  }
 }
+
+// JS interop bindings for EmailJS helper functions defined in index.html
+@JS('window.initEmailJS')
+external void _callInitEmailJS(JSString publicKey);
+
+@JS('window.sendEmailJS')
+external JSPromise _callSendEmailJS(
+  JSString serviceId,
+  JSString templateId,
+  JSAny params,
+  JSString publicKey,
+);

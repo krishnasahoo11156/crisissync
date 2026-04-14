@@ -1,17 +1,57 @@
-/// Location service for staff GPS tracking.
-/// Uses Geolocator on web to get current position.
-class LocationService {
-  // Location tracking for web would use the browser geolocation API
-  // For now, we use a simplified approach
+import 'dart:async';
+import 'dart:js_interop';
+import 'package:web/web.dart' as web;
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-  /// Get current position (latitude, longitude).
+/// Location service for staff GPS tracking using browser Geolocation API.
+class LocationService {
+  static Timer? _locationTimer;
+
+  /// Get current position using browser Geolocation API.
   static Future<Map<String, double>?> getCurrentPosition() async {
     try {
-      // On web, we can use the browser's geolocation API
-      // This is a simplified version for the web platform
-      return null; // Will return null if geolocation is not available
+      final completer = Completer<Map<String, double>?>();
+
+      web.window.navigator.geolocation.getCurrentPosition(
+        ((web.GeolocationPosition position) {
+          completer.complete({
+            'latitude': position.coords.latitude.toDouble(),
+            'longitude': position.coords.longitude.toDouble(),
+          });
+        }).toJS,
+        ((web.GeolocationPositionError error) {
+          completer.complete(null);
+        }).toJS,
+      );
+
+      return completer.future;
     } catch (_) {
       return null;
     }
+  }
+
+  /// Start periodic location updates for staff.
+  static void startTracking(String uid) {
+    _locationTimer?.cancel();
+    _locationTimer = Timer.periodic(const Duration(seconds: 30), (_) async {
+      final pos = await getCurrentPosition();
+      if (pos != null) {
+        try {
+          await FirebaseFirestore.instance.collection('users').doc(uid).update({
+            'lastLocation': {
+              'latitude': pos['latitude'],
+              'longitude': pos['longitude'],
+              'updatedAt': FieldValue.serverTimestamp(),
+            },
+          });
+        } catch (_) {}
+      }
+    });
+  }
+
+  /// Stop tracking.
+  static void stopTracking() {
+    _locationTimer?.cancel();
+    _locationTimer = null;
   }
 }
