@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:crisissync/config/theme.dart';
 import 'package:crisissync/providers/auth_provider.dart';
-import 'package:crisissync/services/fcm_service.dart';
 
 /// Admin layout with sidebar navigation (geminiPurple accents).
 class AdminLayout extends StatelessWidget {

@@ -5,7 +5,6 @@ import 'package:crisissync/services/gemini_service.dart';
 import 'package:crisissync/widgets/gemini_tag.dart';
 import 'package:crisissync/widgets/loading_skeleton.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:intl/intl.dart';
 
 /// Admin analytics screen with charts.
 class AdminAnalyticsScreen extends StatefulWidget {

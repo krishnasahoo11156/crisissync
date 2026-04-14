@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:crisissync/providers/auth_provider.dart';
 import 'package:crisissync/screens/landing_screen.dart';

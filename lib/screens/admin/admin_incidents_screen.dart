@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:crisissync/config/theme.dart';
 import 'package:crisissync/models/incident_model.dart';
 import 'package:crisissync/services/incident_service.dart';

@@ -1,5 +1,4 @@
 import 'dart:js_interop';
-import 'package:web/web.dart' as web;
 
 /// Email service using EmailJS for sending real emails from Flutter Web.
 /// EmailJS is loaded via CDN in index.html with helper functions.
@@ -115,7 +114,7 @@ class EmailService {
   /// Internal method to call EmailJS send via JS interop.
   static Future<void> _send(String templateId, Map<String, String> params) async {
     try {
-      final jsParams = params.jsify();
+      final jsParams = params.jsify()!;
       _callSendEmailJS(
         _serviceId.toJS,
         templateId.toJS,

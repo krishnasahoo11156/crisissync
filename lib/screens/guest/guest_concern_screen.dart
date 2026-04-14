@@ -5,7 +5,6 @@ import 'package:crisissync/config/theme.dart';
 import 'package:crisissync/providers/auth_provider.dart';
 import 'package:crisissync/services/incident_service.dart';
 import 'package:crisissync/services/fcm_service.dart';
-import 'package:intl/intl.dart';
 
 /// Guest non-emergency concern form.
 class GuestConcernScreen extends StatefulWidget {
@@ -43,7 +42,7 @@ class _GuestConcernScreenState extends State<GuestConcernScreen> {
       // Only notify Front Desk
       await FcmService.createNotification(
         uid: '', // Will be resolved to Front Desk staff
-        message: '📋 Non-emergency: ${_category} concern from Room ${user.roomNumber}',
+        message: '📋 Non-emergency: $_category concern from Room ${user.roomNumber}',
         incidentId: incidentId,
         type: 'concern',
       );
@@ -128,7 +127,7 @@ class _GuestConcernScreenState extends State<GuestConcernScreen> {
               ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _category,
+                initialValue: _category,
                 items: _categories.map((c) {
                   return DropdownMenuItem(value: c, child: Text(c));
                 }).toList(),

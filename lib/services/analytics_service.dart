@@ -126,7 +126,7 @@ class AnalyticsService {
 
   static String _floorFromRoom(String room) {
     if (room.startsWith('B')) return 'Basement';
-    if (room.length >= 1) {
+    if (room.isNotEmpty) {
       final floor = room[0];
       return 'Floor $floor';
     }

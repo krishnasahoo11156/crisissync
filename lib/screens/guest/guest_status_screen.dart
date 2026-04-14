@@ -22,7 +22,6 @@ class GuestStatusScreen extends StatefulWidget {
 
 class _GuestStatusScreenState extends State<GuestStatusScreen> {
   Timer? _elapsedTimer;
-  String _elapsed = '';
 
   @override
   void initState() {

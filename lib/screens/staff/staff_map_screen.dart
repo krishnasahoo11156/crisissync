@@ -3,7 +3,6 @@ import 'package:crisissync/config/theme.dart';
 import 'package:crisissync/providers/incident_provider.dart';
 import 'package:crisissync/widgets/incident_card.dart';
 import 'package:crisissync/widgets/crisis_type_icon.dart';
-import 'package:crisissync/widgets/severity_badge.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
@@ -30,7 +29,7 @@ class _StaffMapScreenState extends State<StaffMapScreen> {
   String _floorFromRoom(String room) {
     if (room.startsWith('B')) return 'B1';
     if (room.startsWith('Pool') || room.startsWith('Restaurant') || room.startsWith('Bar')) return 'Rooftop';
-    if (room.length >= 1) return 'Floor ${room[0]}';
+    if (room.isNotEmpty) return 'Floor ${room[0]}';
     return 'Unknown';
   }
 

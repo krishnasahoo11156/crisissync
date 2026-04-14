@@ -163,7 +163,7 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                             incident: incident,
                             onTap: () => context.go('/staff/incident/${incident.id}'),
                             onAccept: incident.status == 'active' && user != null
-                                ? () => _acceptIncident(incident, user!)
+                                ? () => _acceptIncident(incident, user)
                                 : null,
                           );
                         },

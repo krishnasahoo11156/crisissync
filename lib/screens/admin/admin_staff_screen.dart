@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:crisissync/config/theme.dart';
 import 'package:crisissync/models/user_model.dart';
 import 'package:crisissync/providers/staff_provider.dart';
-import 'package:intl/intl.dart';
 
 /// Admin staff management screen.
 class AdminStaffScreen extends StatefulWidget {
@@ -195,7 +194,7 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.modal)),
         title: Text('Edit Role — ${s.name}', style: AppTextStyles.clashDisplay(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
         content: DropdownButtonFormField<String>(
-          value: selectedRole,
+          initialValue: selectedRole,
           dropdownColor: AppColors.surface,
           items: ['Security', 'Medical', 'Front Desk', 'Manager'].map((r) => DropdownMenuItem(value: r, child: Text(r))).toList(),
           onChanged: (v) => selectedRole = v ?? selectedRole,
