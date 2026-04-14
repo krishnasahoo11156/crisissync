@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="CrisisSync — Real-time crisis response and emergency coordination platform for hospitality venues.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="CrisisSync">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>CrisisSync — Crisis Response Platform</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Firebase JS SDK (compat for Flutter Web) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAsNqvAVScKN8UrUFcv2NF1TLUxbkvFKG8",
+      authDomain: "crisissync-11156.firebaseapp.com",
+      projectId: "crisissync-11156",
+      storageBucket: "crisissync-11156.firebasestorage.app",
+      messagingSenderId: "63983001833",
+      appId: "1:63983001833:web:1b9a0579a520a766cfd078",
+      measurementId: "G-DX02QTVSJQ",
+      databaseURL: "https://crisissync-11156-default-rtdb.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+
+  <!-- EmailJS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>
+    // EmailJS will be initialized from Dart via JS interop
+    window.sendEmailJS = function(serviceId, templateId, params, publicKey) {
+      return emailjs.send(serviceId, templateId, params, publicKey);
+    };
+    window.initEmailJS = function(publicKey) {
+      emailjs.init(publicKey);
+    };
+  </script>
+
+  <!-- Google Maps API -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAXhEfJFsjdXH3erdc_oGRjCEP8S7hspNg"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #0D0D0D;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
