@@ -101,8 +101,8 @@ Severity Guide:
 5 = Critical/life-threatening, all hands on deck
 ''';
 
-    final result = await _callGemini(prompt);
     try {
+      final result = await _callGemini(prompt);
       // Strip markdown code fences if present
       String cleaned = result.trim();
       if (cleaned.startsWith('```')) {
@@ -113,7 +113,7 @@ Severity Guide:
       return {
         'crisisType': crisisType,
         'severity': 3,
-        'situationBrief': result,
+        'situationBrief': 'AI classification failed. Please assess the situation manually.',
         'suggestedAction': 'Investigate and assess the situation.',
         'responseRole': 'Security',
         'checklist': [

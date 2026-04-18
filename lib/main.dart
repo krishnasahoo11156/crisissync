@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:crisissync/config/firebase_config.dart';
 import 'package:crisissync/config/router.dart';
 import 'package:crisissync/config/theme.dart';
@@ -39,28 +40,37 @@ void main() async {
   runApp(const CrisisSyncApp());
 }
 
-class CrisisSyncApp extends StatelessWidget {
+class CrisisSyncApp extends StatefulWidget {
   const CrisisSyncApp({super.key});
+
+  @override
+  State<CrisisSyncApp> createState() => _CrisisSyncAppState();
+}
+
+class _CrisisSyncAppState extends State<CrisisSyncApp> {
+  late final AuthProvider _authProvider;
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    _authProvider = AuthProvider();
+    _router = AppRouter.router(_authProvider);
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider.value(value: _authProvider),
         ChangeNotifierProvider(create: (_) => IncidentProvider()),
         ChangeNotifierProvider(create: (_) => StaffProvider()),
       ],
-      child: Consumer<AuthProvider>(
-        builder: (context, authProvider, _) {
-          final router = AppRouter.router(authProvider);
-
-          return MaterialApp.router(
-            title: 'CrisisSync — Crisis Response Platform',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.darkTheme,
-            routerConfig: router,
-          );
-        },
+      child: MaterialApp.router(
+        title: 'CrisisSync — Crisis Response Platform',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.darkTheme,
+        routerConfig: _router,
       ),
     );
   }

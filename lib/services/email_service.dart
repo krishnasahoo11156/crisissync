@@ -1,3 +1,6 @@
+@JS()
+library email_service;
+
 import 'dart:js_interop';
 
 /// Email service using EmailJS for sending real emails from Flutter Web.
