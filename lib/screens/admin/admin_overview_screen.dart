@@ -7,6 +7,7 @@ import 'package:crisissync/providers/incident_provider.dart';
 import 'package:crisissync/providers/staff_provider.dart';
 import 'package:crisissync/services/analytics_service.dart';
 import 'package:crisissync/services/gemini_service.dart';
+import 'package:crisissync/services/seed_service.dart';
 import 'package:crisissync/widgets/severity_badge.dart';
 import 'package:crisissync/widgets/crisis_type_icon.dart';
 import 'package:crisissync/widgets/status_indicator.dart';
@@ -33,7 +34,16 @@ class _AdminOverviewScreenState extends State<AdminOverviewScreen> {
       context.read<IncidentProvider>().startListening();
       context.read<StaffProvider>().startListening();
       _loadBriefing();
+      _seedGimmickDataIfNeeded();
     });
+  }
+
+  Future<void> _seedGimmickDataIfNeeded() async {
+    try {
+      await SeedService.seedGimmickData();
+    } catch (e) {
+      debugPrint('Failed to seed gimmick data: $e');
+    }
   }
 
   Future<void> _loadBriefing() async {
