@@ -41,7 +41,7 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.void_,
-      body: Column(
+      body: SizedBox.expand(child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Critical alert banner
@@ -132,8 +132,8 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
           Expanded(
             child: incidents.isLoading
                 ? Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: LoadingSkeleton(rows: 5, height: 120),
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                    child: ClipRect(child: LoadingSkeleton(rows: 3, height: 100)),
                   )
                 : filtered.isEmpty
                     ? Center(
@@ -170,7 +170,7 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                       ),
           ),
         ],
-      ),
+      )),
     );
   }
 

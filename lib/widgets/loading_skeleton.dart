@@ -33,32 +33,33 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: List.generate(widget.rows, (index) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return Container(
-                height: widget.height,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppRadius.button),
-                  gradient: LinearGradient(
-                    begin: Alignment(-1.0 + (2.0 * _controller.value), 0),
-                    end: Alignment(-1.0 + (2.0 * _controller.value) + 1.0, 0),
-                    colors: const [
-                      AppColors.surface,
-                      Color(0xFF2A2A2A),
-                      AppColors.surface,
-                    ],
-                  ),
+    return ListView.separated(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      itemCount: widget.rows,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Container(
+              height: widget.height,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppRadius.button),
+                gradient: LinearGradient(
+                  begin: Alignment(-1.0 + (2.0 * _controller.value), 0),
+                  end: Alignment(-1.0 + (2.0 * _controller.value) + 1.0, 0),
+                  colors: const [
+                    AppColors.surface,
+                    Color(0xFF2A2A2A),
+                    AppColors.surface,
+                  ],
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         );
-      }),
+      },
     );
   }
 }

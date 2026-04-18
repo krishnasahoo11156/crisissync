@@ -8,7 +8,9 @@ import 'dart:async';
 class IncidentProvider extends ChangeNotifier {
   List<IncidentModel> _activeIncidents = [];
   List<IncidentModel> _allIncidents = [];
+  // Loading stays true until Firestore (rich data) has responded at least once.
   bool _isLoading = true;
+  bool _firestoreLoaded = false;
   StreamSubscription? _rtdbSub;
   StreamSubscription? _firestoreSub;
   StreamSubscription? _allSub;
@@ -20,33 +22,29 @@ class IncidentProvider extends ChangeNotifier {
   int get criticalCount => _activeIncidents.where((i) => i.severity >= 4).length;
 
   void startListening() {
-    // RTDB for sub-200ms detection
-    _rtdbSub = RtdbService.streamActiveIncidents().listen((incidents) {
-      _activeIncidents = incidents;
-      _isLoading = false;
-      notifyListeners();
+    // RTDB fires first (<200ms) — use only to detect incident IDs quickly.
+    // We do NOT render RTDB stubs directly to avoid blank cards.
+    _rtdbSub = RtdbService.streamActiveIncidents().listen((_) {
+      // Just mark non-loading if Firestore hasn't arrived yet after 2 s.
+      // Actual list population is Firestore-driven below.
+      Future.delayed(const Duration(seconds: 2), () {
+        if (!_firestoreLoaded && _isLoading) {
+          _isLoading = false;
+          notifyListeners();
+        }
+      });
     });
 
-    // Firestore for full data
+    // Firestore is the single source of truth for the rendered list.
     _firestoreSub = IncidentService.streamActiveIncidents().listen((incidents) {
-      // Merge with RTDB data — Firestore has richer data
-      for (final fsIncident in incidents) {
-        final idx = _activeIncidents.indexWhere((i) => i.id == fsIncident.id);
-        if (idx >= 0) {
-          _activeIncidents[idx] = fsIncident;
-        } else {
-          _activeIncidents.add(fsIncident);
-        }
-      }
-      // Remove any that are no longer active in Firestore
-      _activeIncidents.removeWhere(
-        (i) => !incidents.any((fi) => fi.id == i.id) && i.geminiClassification != null,
-      );
-      _activeIncidents.sort((a, b) {
-        final sevComp = b.severity.compareTo(a.severity);
-        if (sevComp != 0) return sevComp;
-        return b.createdAt.compareTo(a.createdAt);
-      });
+      _firestoreLoaded = true;
+      _isLoading = false;
+      _activeIncidents = List<IncidentModel>.from(incidents)
+        ..sort((a, b) {
+          final sevComp = b.severity.compareTo(a.severity);
+          if (sevComp != 0) return sevComp;
+          return b.createdAt.compareTo(a.createdAt);
+        });
       notifyListeners();
     });
   }
