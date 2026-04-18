@@ -15,6 +15,11 @@ class AuthService {
       final GoogleAuthProvider googleProvider = GoogleAuthProvider();
       googleProvider.addScope('email');
       googleProvider.addScope('profile');
+      // Force the account chooser to always appear so users can
+      // switch between Guest / Staff / Admin Google accounts.
+      googleProvider.setCustomParameters({
+        'prompt': 'select_account',
+      });
 
       final UserCredential result = await _auth.signInWithPopup(googleProvider);
       final User? user = result.user;
