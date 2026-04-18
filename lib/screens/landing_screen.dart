@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:crisissync/config/theme.dart';
+import 'package:crisissync/config/router.dart';
+import 'package:crisissync/providers/auth_provider.dart';
 import 'package:crisissync/services/incident_service.dart';
 
-/// Landing page — role selector with live counter.
+/// Landing page — role selector with live counter and portal-aware navigation.
+///
+/// If the user is already signed in:
+///   - Clicking their matching portal → goes directly (no re-sign-in)
+///   - Clicking a different portal → routes through /auth which handles
+///     sign-out and re-sign-in
 class LandingScreen extends StatefulWidget {
   const LandingScreen({super.key});
 
@@ -27,10 +35,35 @@ class _LandingScreenState extends State<LandingScreen> {
     } catch (_) {}
   }
 
+  /// Navigate to a portal with smart session handling.
+  void _goToPortal(String portal) {
+    final auth = context.read<AuthProvider>();
+
+    if (auth.isLoggedIn) {
+      final role = auth.userRole ?? 'guest';
+
+      // If user is admin, they can access everything directly
+      if (role == 'admin') {
+        context.go(AppRouter.homeForRole(portal == 'admin' ? 'admin' : portal == 'staff' ? 'staff' : 'guest'));
+        return;
+      }
+
+      // If role matches the portal, go directly without re-sign-in
+      if (role == portal) {
+        context.go(AppRouter.homeForRole(role));
+        return;
+      }
+    }
+
+    // Not logged in, or role doesn't match → go through auth flow
+    context.go('/auth?portal=$portal');
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobile = screenWidth < 768;
+    final auth = context.watch<AuthProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.void_,
@@ -59,6 +92,49 @@ class _LandingScreenState extends State<LandingScreen> {
                 ),
                 textAlign: TextAlign.center,
               ),
+              // Show current session info if logged in
+              if (auth.isLoggedIn) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(AppRadius.badge),
+                    border: Border.all(color: AppColors.borderDark),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.person, size: 16, color: AppColors.signalTeal),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Signed in as ${auth.user?.name ?? 'User'} (${auth.userRole ?? 'guest'})',
+                        style: AppTextStyles.dmSans(
+                          fontSize: 13,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () async {
+                            await auth.signOut();
+                          },
+                          child: Text(
+                            'Sign out',
+                            style: AppTextStyles.dmSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.crisisRed,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 56),
               // Portal cards
               Wrap(
@@ -71,8 +147,8 @@ class _LandingScreenState extends State<LandingScreen> {
                     description: 'Report emergencies and track response in real time',
                     icon: Icons.person_outline,
                     accentColor: AppColors.signalTeal,
-                    cta: "I'm a Guest",
-                    onTap: () => context.go('/auth?portal=guest'),
+                    cta: _getPortalCTA('guest', auth),
+                    onTap: () => _goToPortal('guest'),
                     width: isMobile ? screenWidth - 48 : 300,
                   ),
                   _PortalCard(
@@ -80,8 +156,8 @@ class _LandingScreenState extends State<LandingScreen> {
                     description: 'Respond to incidents with AI-powered checklists',
                     icon: Icons.shield_outlined,
                     accentColor: AppColors.crisisRed,
-                    cta: 'Hotel Staff',
-                    onTap: () => context.go('/auth?portal=staff'),
+                    cta: _getPortalCTA('staff', auth),
+                    onTap: () => _goToPortal('staff'),
                     width: isMobile ? screenWidth - 48 : 300,
                   ),
                   _PortalCard(
@@ -89,8 +165,8 @@ class _LandingScreenState extends State<LandingScreen> {
                     description: 'Monitor operations with analytics and AI briefings',
                     icon: Icons.analytics_outlined,
                     accentColor: AppColors.geminiPurple,
-                    cta: 'Management',
-                    onTap: () => context.go('/auth?portal=admin'),
+                    cta: _getPortalCTA('admin', auth),
+                    onTap: () => _goToPortal('admin'),
                     width: isMobile ? screenWidth - 48 : 300,
                   ),
                 ],
@@ -138,6 +214,35 @@ class _LandingScreenState extends State<LandingScreen> {
         ),
       ),
     );
+  }
+
+  /// Get context-aware CTA text for portal cards.
+  String _getPortalCTA(String portal, AuthProvider auth) {
+    if (!auth.isLoggedIn) {
+      switch (portal) {
+        case 'guest':
+          return "I'm a Guest →";
+        case 'staff':
+          return 'Hotel Staff →';
+        case 'admin':
+          return 'Management →';
+        default:
+          return 'Continue →';
+      }
+    }
+
+    final role = auth.userRole ?? 'guest';
+
+    // Admin can access everything
+    if (role == 'admin') {
+      return 'Enter as Admin →';
+    }
+
+    if (role == portal) {
+      return 'Continue as ${auth.user?.name ?? 'User'} →';
+    }
+
+    return 'Switch account →';
   }
 }
 

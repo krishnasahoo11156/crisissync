@@ -200,8 +200,9 @@ class _GuestHomeScreenState extends State<GuestHomeScreen>
                 // Sign out
                 TextButton(
                   onPressed: () async {
+                    final router = GoRouter.of(context);
                     await auth.signOut();
-                    if (mounted) context.go('/');
+                    if (mounted) router.go('/');
                   },
                   child: Text(
                     'Sign Out',

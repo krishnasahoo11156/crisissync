@@ -1,0 +1,116 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helper functions ───
+
+    /// Check if the requesting user is authenticated.
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    /// Get the requesting user's Firestore profile.
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    /// Check if the requesting user has a specific role.
+    function hasRole(role) {
+      return isAuth() && getUserData().role == role;
+    }
+
+    /// Check if the user is staff or admin.
+    function isStaffOrAdmin() {
+      return isAuth() && getUserData().role in ['staff', 'admin'];
+    }
+
+    /// Check if the user is admin.
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    // ─── Users collection ───
+    match /users/{userId} {
+      // Any authenticated user can read their own profile.
+      // Staff and admin can read all profiles (for staff directory, etc.)
+      allow read: if isAuth() && (
+        request.auth.uid == userId || isStaffOrAdmin()
+      );
+
+      // Users can create their own profile on first sign-in.
+      allow create: if isAuth() && request.auth.uid == userId;
+
+      // Users can update their own profile.
+      // Admin can update any profile (for role changes, etc.)
+      allow update: if isAuth() && (
+        request.auth.uid == userId || isAdmin()
+      );
+
+      // Only admin can delete user profiles.
+      allow delete: if isAdmin();
+    }
+
+    // ─── Incidents collection ───
+    match /incidents/{incidentId} {
+      // Staff and admin can read all incidents.
+      // Guests can only read incidents they created.
+      allow read: if isAuth() && (
+        isStaffOrAdmin() ||
+        resource.data.guestUid == request.auth.uid
+      );
+
+      // Any authenticated user can create an incident (guests report emergencies).
+      allow create: if isAuth();
+
+      // Staff and admin can update any incident (accept, resolve, escalate).
+      // Guests can update their own incidents (e.g., add rating).
+      allow update: if isAuth() && (
+        isStaffOrAdmin() ||
+        resource.data.guestUid == request.auth.uid
+      );
+
+      // Only admin can delete incidents.
+      allow delete: if isAdmin();
+    }
+
+    // ─── Analytics collection ───
+    match /analytics/{dateId} {
+      // Staff and admin can read analytics.
+      allow read: if isStaffOrAdmin();
+
+      // Any authenticated user can write analytics (incident service writes on create/resolve).
+      allow write: if isAuth();
+    }
+
+    // ─── Notifications collection ───
+    match /notifications/{userId} {
+      // Allow read/write on the user document itself (needed for subcollection access).
+      allow read, write: if isAuth() && (
+        request.auth.uid == userId || isStaffOrAdmin()
+      );
+
+      match /items/{notificationId} {
+        // Users can read their own notifications.
+        allow read: if isAuth() && request.auth.uid == userId;
+
+        // Any authenticated user can create notifications (system creates them).
+        allow create: if isAuth();
+
+        // Users can update their own notifications (mark as read).
+        allow update: if isAuth() && request.auth.uid == userId;
+
+        // Users can delete their own notifications.
+        allow delete: if isAuth() && request.auth.uid == userId;
+      }
+    }
+
+    // ─── Venues collection ───
+    match /venues/{venueId} {
+      // Any authenticated user can read venue data.
+      allow read: if isAuth();
+
+      // Only admin can write venue data.
+      allow write: if isAdmin();
+    }
+  }
+}

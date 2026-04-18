@@ -1,0 +1,11 @@
+{
+  "rules": {
+    "active_incidents": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$incidentId": {
+        ".validate": "newData.hasChildren(['guestUid', 'crisisType', 'status', 'severity'])"
+      }
+    }
+  }
+}

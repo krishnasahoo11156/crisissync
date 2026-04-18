@@ -60,8 +60,9 @@ class _GuestStatusScreenState extends State<GuestStatusScreen> {
 
           // Navigate to resolved screen
           if (incident.status == 'resolved') {
+            final router = GoRouter.of(context);
             Future.delayed(const Duration(seconds: 2), () {
-              if (mounted) context.go('/guest/resolved/${widget.incidentId}');
+              if (mounted) router.go('/guest/resolved/${widget.incidentId}');
             });
           }
 

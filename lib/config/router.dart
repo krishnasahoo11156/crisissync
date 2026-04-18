@@ -20,6 +20,13 @@ import 'package:crisissync/screens/admin/admin_analytics_screen.dart';
 import 'package:crisissync/screens/admin/admin_venue_screen.dart';
 
 /// App router with role-based redirect guards.
+///
+/// Portal switching logic:
+/// - The `/auth?portal=X` route is ALWAYS accessible — it handles sign-out
+///   and re-sign-in internally when the user's current role doesn't match
+///   the requested portal.
+/// - The landing page checks the user's role before navigating:
+///   if the role matches, go directly; otherwise route through `/auth`.
 class AppRouter {
   static GoRouter router(AuthProvider authProvider) {
     return GoRouter(
@@ -27,19 +34,21 @@ class AppRouter {
       initialLocation: '/',
       redirect: (context, state) {
         final isLoggedIn = authProvider.isLoggedIn;
+        final isLoading = authProvider.isLoading;
         final userRole = authProvider.userRole;
         final path = state.uri.path;
+
+        // Don't redirect while auth state is still loading
+        if (isLoading) return null;
 
         // Allow landing page always
         if (path == '/') return null;
 
-        // Auth screen accessible when not logged in
-        if (path == '/auth') {
-          if (isLoggedIn) {
-            return _homeForRole(userRole);
-          }
-          return null;
-        }
+        // ─── Auth screen: ALWAYS allow access ───
+        // The auth screen handles portal switching internally.
+        // If the user is already logged in, the auth screen will
+        // either redirect them (matching role) or sign them out first.
+        if (path == '/auth') return null;
 
         // Not logged in → redirect to auth
         if (!isLoggedIn) return '/auth';
@@ -147,6 +156,9 @@ class AppRouter {
       ],
     );
   }
+
+  /// Map a role to its home route.
+  static String homeForRole(String? role) => _homeForRole(role);
 
   static String _homeForRole(String? role) {
     switch (role) {

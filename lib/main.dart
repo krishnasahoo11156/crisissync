@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:crisissync/config/firebase_config.dart';
 import 'package:crisissync/config/router.dart';
@@ -18,11 +19,18 @@ void main() async {
     options: FirebaseConfig.webOptions,
   );
 
-  // Seed pre-configured accounts
+  // Enable Firestore persistence for offline support on web
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
+
+  // Seed pre-configured accounts (non-blocking)
   try {
-    await AuthService.seedAccounts();
-  } catch (_) {
-    // Seeding may fail if already done or no permissions yet
+    await AuthService.seedAccounts().timeout(const Duration(seconds: 5));
+  } catch (e) {
+    // Seeding may fail if already done, no permissions, or offline — non-critical
+    debugPrint('Seed accounts: $e');
   }
 
   // Initialize EmailJS
