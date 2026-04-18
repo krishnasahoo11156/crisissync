@@ -11,7 +11,6 @@ import 'package:crisissync/widgets/severity_badge.dart';
 import 'package:crisissync/widgets/crisis_type_icon.dart';
 import 'package:crisissync/widgets/status_indicator.dart';
 import 'package:crisissync/widgets/gemini_tag.dart';
-import 'package:crisissync/widgets/loading_skeleton.dart';
 import 'package:crisissync/widgets/adi_score_gauge.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -31,6 +30,8 @@ class _StaffIncidentDetailScreenState extends State<StaffIncidentDetailScreen> {
   Timer? _adiTimer;
   double _adiScore = 0;
   Timer? _elapsedTimer;
+  bool _classifying = false;
+  String? _classifyError;
 
   @override
   void initState() {
@@ -91,6 +92,11 @@ class _StaffIncidentDetailScreenState extends State<StaffIncidentDetailScreen> {
 
         if (incident.isActive && _adiTimer == null) {
           _startADITimer(incident);
+        }
+
+        // Auto-trigger Gemini classification if missing
+        if (incident.geminiClassification == null && !_classifying && _classifyError == null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _retryClassification(incident));
         }
 
         return Scaffold(
@@ -199,6 +205,30 @@ class _StaffIncidentDetailScreenState extends State<StaffIncidentDetailScreen> {
     );
   }
 
+  Future<void> _retryClassification(IncidentModel incident) async {
+    if (_classifying) return;
+    setState(() {
+      _classifying = true;
+      _classifyError = null;
+    });
+    try {
+      await IncidentService.retryClassification(
+        incidentId: incident.id,
+        crisisType: incident.crisisType,
+        description: incident.description ?? '',
+        voiceTranscript: incident.voiceTranscript,
+        roomNumber: incident.roomNumber,
+      );
+      // Stream will update automatically — clear flags
+      if (mounted) setState(() => _classifying = false);
+    } catch (e) {
+      if (mounted) setState(() {
+        _classifying = false;
+        _classifyError = e.toString();
+      });
+    }
+  }
+
   Widget _buildLeftColumn(IncidentModel incident, dynamic user) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,9 +279,44 @@ class _StaffIncidentDetailScreenState extends State<StaffIncidentDetailScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          if (gc == null)
-            const LoadingSkeleton(rows: 4, height: 52)
-          else ...[
+          if (gc == null) ...[
+            if (_classifying)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(color: AppColors.geminiPurple),
+                    SizedBox(height: 12),
+                    Text('Gemini is analysing this incident…',
+                        style: TextStyle(fontSize: 13, color: AppColors.textMuted)),
+                  ],
+                ),
+              )
+            else
+              Column(
+                children: [
+                  Icon(Icons.auto_awesome, color: AppColors.geminiPurple, size: 36),
+                  const SizedBox(height: 12),
+                  Text(
+                    _classifyError != null
+                        ? 'AI classification failed. Tap below to retry.'
+                        : 'AI classification pending…',
+                    style: AppTextStyles.dmSans(fontSize: 13, color: AppColors.textMuted),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () => _retryClassification(incident),
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text('Run AI Analysis'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.geminiPurple,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+          ] else ...[
             // Classification header
             Container(
               padding: const EdgeInsets.all(16),

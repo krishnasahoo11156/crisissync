@@ -79,7 +79,7 @@ class IncidentService {
     return incidentId;
   }
 
-  /// Async Gemini classification.
+  /// Async Gemini classification (fire-and-forget at creation).
   static Future<void> _classifyIncidentAsync(
     String incidentId,
     String crisisType,
@@ -88,27 +88,43 @@ class IncidentService {
     String roomNumber,
   ) async {
     try {
-      final classification = await GeminiService.classifyIncident(
+      await retryClassification(
+        incidentId: incidentId,
         crisisType: crisisType,
         description: description,
         voiceTranscript: voiceTranscript,
         roomNumber: roomNumber,
       );
-
-      await _firestore.collection('incidents').doc(incidentId).update({
-        'geminiClassification': classification,
-        'severity': classification['severity'] ?? 3,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-
-      // Update RTDB severity
-      await _rtdb.ref('active_incidents/$incidentId').update({
-        'severity': classification['severity'] ?? 3,
-        'updatedAt': DateTime.now().millisecondsSinceEpoch,
-      });
     } catch (_) {
-      // Gemini classification failure is non-critical
+      // Non-critical — UI can retry on demand via retryClassification()
     }
+  }
+
+  /// Public: (re-)classify an incident with Gemini. Safe to call at any time.
+  static Future<void> retryClassification({
+    required String incidentId,
+    required String crisisType,
+    required String description,
+    String? voiceTranscript,
+    String? roomNumber,
+  }) async {
+    final classification = await GeminiService.classifyIncident(
+      crisisType: crisisType,
+      description: description,
+      voiceTranscript: voiceTranscript,
+      roomNumber: roomNumber ?? '',
+    );
+
+    await _firestore.collection('incidents').doc(incidentId).update({
+      'geminiClassification': classification,
+      'severity': classification['severity'] ?? 3,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+
+    await _rtdb.ref('active_incidents/$incidentId').update({
+      'severity': classification['severity'] ?? 3,
+      'updatedAt': DateTime.now().millisecondsSinceEpoch,
+    });
   }
 
   /// Accept an incident.
