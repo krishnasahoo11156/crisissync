@@ -7,6 +7,7 @@ import 'package:crisissync/providers/incident_provider.dart';
 import 'package:crisissync/providers/staff_provider.dart';
 import 'package:crisissync/services/analytics_service.dart';
 import 'package:crisissync/services/gemini_service.dart';
+import 'package:crisissync/services/incident_service.dart';
 import 'package:crisissync/services/seed_service.dart';
 import 'package:crisissync/widgets/severity_badge.dart';
 import 'package:crisissync/widgets/crisis_type_icon.dart';
@@ -14,6 +15,7 @@ import 'package:crisissync/widgets/status_indicator.dart';
 import 'package:crisissync/widgets/gemini_tag.dart';
 import 'package:crisissync/widgets/loading_skeleton.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 
 /// Admin overview dashboard with stat cards, incident table, and donut chart.
 class AdminOverviewScreen extends StatefulWidget {
@@ -114,6 +116,10 @@ class _AdminOverviewScreenState extends State<AdminOverviewScreen> {
                 );
               },
             ),
+            const SizedBox(height: 24),
+
+            // Recent resolved incidents
+            _buildRecentResolved(),
             const SizedBox(height: 24),
 
             // Gemini briefing
@@ -240,6 +246,76 @@ class _AdminOverviewScreenState extends State<AdminOverviewScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildRecentResolved() {
+    return StreamBuilder<List<IncidentModel>>(
+      stream: IncidentService.streamResolvedIncidents(),
+      builder: (context, snapshot) {
+        final resolved = (snapshot.data ?? []).take(5).toList();
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppRadius.card),
+            border: Border.all(color: AppColors.borderDark),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    Text('Recent Resolved', style: AppTextStyles.clashDisplay(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.signalTeal.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(AppRadius.badge),
+                      ),
+                      child: Text('Last 5', style: AppTextStyles.jetBrainsMono(fontSize: 11, color: AppColors.signalTeal)),
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () => context.go('/admin/incidents'),
+                      child: Text('View all →', style: AppTextStyles.dmSans(fontSize: 13, color: AppColors.signalTeal)),
+                    ),
+                  ],
+                ),
+              ),
+              if (resolved.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  child: Text('No resolved incidents yet', style: AppTextStyles.dmSans(color: AppColors.textMuted)),
+                )
+              else
+                ...resolved.map((i) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.borderDark, width: 0.5))),
+                  child: Row(
+                    children: [
+                      SizedBox(width: 60, child: Text(i.roomNumber, style: AppTextStyles.jetBrainsMono(fontSize: 13, color: AppColors.textPrimary))),
+                      CrisisTypeIcon(type: i.crisisType, size: 16),
+                      const SizedBox(width: 6),
+                      SizedBox(width: 70, child: Text(i.crisisType, style: AppTextStyles.dmSans(fontSize: 12, color: AppColors.textMuted))),
+                      SeverityBadge(level: i.severity),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          i.resolvedAt != null ? DateFormat('MMM dd, HH:mm').format(i.resolvedAt!) : '',
+                          style: AppTextStyles.jetBrainsMono(fontSize: 11, color: AppColors.textMuted),
+                        ),
+                      ),
+                      const Icon(Icons.check_circle, color: AppColors.signalTeal, size: 16),
+                    ],
+                  ),
+                )),
+            ],
+          ),
+        );
+      },
     );
   }
 

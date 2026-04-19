@@ -7,8 +7,10 @@ import 'package:crisissync/providers/auth_provider.dart';
 import 'package:crisissync/providers/incident_provider.dart';
 import 'package:crisissync/services/incident_service.dart';
 import 'package:crisissync/services/email_service.dart';
+import 'package:crisissync/widgets/crisis_type_icon.dart';
 import 'package:crisissync/widgets/incident_card.dart';
 import 'package:crisissync/widgets/loading_skeleton.dart';
+import 'package:crisissync/widgets/severity_badge.dart';
 import 'package:intl/intl.dart';
 
 /// Staff dashboard with live incident list.
@@ -169,8 +171,88 @@ class _StaffDashboardScreenState extends State<StaffDashboardScreen> {
                         },
                       ),
           ),
+
+          // Recent Incidents section
+          _buildRecentIncidentsSection(context),
         ],
       )),
+    );
+  }
+
+  Widget _buildRecentIncidentsSection(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.borderDark, width: 0.5)),
+      ),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+        childrenPadding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+        backgroundColor: const Color(0xFF0D0D0D),
+        collapsedBackgroundColor: Colors.transparent,
+        leading: const Icon(Icons.history_rounded, color: AppColors.textMuted, size: 20),
+        title: Text(
+          'Recent Incidents',
+          style: AppTextStyles.dmSans(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textMuted),
+        ),
+        iconColor: AppColors.textMuted,
+        collapsedIconColor: AppColors.textMuted,
+        children: [
+          StreamBuilder<List<IncidentModel>>(
+            stream: IncidentService.streamResolvedIncidents(),
+            builder: (context, snapshot) {
+              final recent = (snapshot.data ?? []).take(5).toList();
+              if (recent.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text('No recent resolved incidents', style: AppTextStyles.dmSans(fontSize: 13, color: AppColors.textMuted)),
+                );
+              }
+              return Column(
+                children: recent.map((i) => InkWell(
+                  onTap: () => context.go('/staff/incident/${i.id}'),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(AppRadius.card),
+                      border: Border.all(color: AppColors.borderDark),
+                    ),
+                    child: Row(
+                      children: [
+                        CrisisTypeIcon(type: i.crisisType, size: 16),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('${i.crisisType.toUpperCase()} — Room ${i.roomNumber}',
+                                  style: AppTextStyles.dmSans(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+                              if (i.resolvedAt != null)
+                                Text(DateFormat('MMM dd, HH:mm').format(i.resolvedAt!),
+                                    style: AppTextStyles.jetBrainsMono(fontSize: 11, color: AppColors.textMuted)),
+                            ],
+                          ),
+                        ),
+                        SeverityBadge(level: i.severity),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.chevron_right, color: AppColors.textMuted, size: 18),
+                      ],
+                    ),
+                  ),
+                )).toList(),
+              );
+            },
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () => context.go('/staff/history'),
+              child: Text('View all resolved →', style: AppTextStyles.dmSans(fontSize: 13, color: AppColors.signalTeal)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
