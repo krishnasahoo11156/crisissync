@@ -240,26 +240,206 @@ class _GuestHomeScreenState extends State<GuestHomeScreen>
             ],
           ),
         ),
-        if (room.isNotEmpty)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppRadius.badge),
-              border: Border.all(color: Colors.black12),
-            ),
-            child: Text(
-              'Room $room',
-              style: AppTextStyles.jetBrainsMono(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
+        // Room chip — tappable to open edit profile sheet
+        Tooltip(
+          message: 'Tap to edit profile',
+          child: GestureDetector(
+            onTap: _showEditProfileSheet,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppRadius.badge),
+                border: Border.all(color: Colors.black12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    room.isNotEmpty ? 'Room $room' : 'Set Room',
+                    style: AppTextStyles.jetBrainsMono(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.edit, size: 11, color: Colors.black38),
+                ],
               ),
             ),
           ),
+        ),
         const SizedBox(width: 8),
         NotificationBell(uid: uid),
       ],
+    );
+  }
+
+  /// Edit profile bottom sheet — lets the guest update name and room number.
+  /// Uses AuthProvider.updateName / updateRoomNumber which call notifyListeners(),
+  /// so all context.watch<AuthProvider>() widgets rebuild instantly.
+  void _showEditProfileSheet() {
+    final auth = context.read<AuthProvider>();
+    final nameController = TextEditingController(text: auth.user?.name ?? '');
+    final roomController = TextEditingController(text: auth.user?.roomNumber ?? '');
+    String? sheetError;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.fromLTRB(
+            24, 24, 24,
+            MediaQuery.of(ctx).viewInsets.bottom + 32,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Drag handle
+              Center(
+                child: Container(
+                  width: 36, height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.black12,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Edit Profile',
+                style: AppTextStyles.clashDisplay(
+                  fontSize: 20, fontWeight: FontWeight.w600, color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Changes are saved instantly across all screens.',
+                style: AppTextStyles.dmSans(fontSize: 13, color: Colors.black45),
+              ),
+              const SizedBox(height: 20),
+              // Name field
+              Text(
+                'DISPLAY NAME',
+                style: AppTextStyles.dmSans(
+                  fontSize: 11, fontWeight: FontWeight.w700,
+                  color: Colors.black45, letterSpacing: 0.8,
+                ),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: nameController,
+                autofocus: true,
+                style: AppTextStyles.dmSans(fontSize: 16, color: Colors.black87),
+                decoration: InputDecoration(
+                  hintText: 'Your name',
+                  prefixIcon: const Icon(Icons.person_outline, color: Colors.black38),
+                  fillColor: const Color(0xFFF5F5F0),
+                  filled: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.button),
+                    borderSide: const BorderSide(color: Colors.black12),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.button),
+                    borderSide: const BorderSide(color: Colors.black12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.button),
+                    borderSide: const BorderSide(color: AppColors.crisisRed),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Room field
+              Text(
+                'ROOM NUMBER',
+                style: AppTextStyles.dmSans(
+                  fontSize: 11, fontWeight: FontWeight.w700,
+                  color: Colors.black45, letterSpacing: 0.8,
+                ),
+              ),
+              const SizedBox(height: 6),
+              TextField(
+                controller: roomController,
+                keyboardType: TextInputType.number,
+                style: AppTextStyles.jetBrainsMono(
+                  fontSize: 18, fontWeight: FontWeight.w500, color: Colors.black87,
+                ),
+                decoration: InputDecoration(
+                  hintText: 'e.g. 306',
+                  prefixIcon: const Icon(Icons.hotel, color: Colors.black38),
+                  fillColor: const Color(0xFFF5F5F0),
+                  filled: true,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.button),
+                    borderSide: const BorderSide(color: Colors.black12),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.button),
+                    borderSide: const BorderSide(color: Colors.black12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.button),
+                    borderSide: const BorderSide(color: AppColors.crisisRed),
+                  ),
+                ),
+              ),
+              if (sheetError != null) ...[  
+                const SizedBox(height: 8),
+                Text(
+                  sheetError!,
+                  style: AppTextStyles.dmSans(fontSize: 13, color: AppColors.crisisRed),
+                ),
+              ],
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final name = nameController.text.trim();
+                    final room = roomController.text.trim();
+                    if (name.isEmpty) {
+                      setSheetState(() => sheetError = 'Name cannot be empty.');
+                      return;
+                    }
+                    if (room.isEmpty) {
+                      setSheetState(() => sheetError = 'Room number cannot be empty.');
+                      return;
+                    }
+                    // Update via AuthProvider — notifyListeners() propagates to all watchers
+                    final authProv = context.read<AuthProvider>();
+                    if (name != (authProv.user?.name ?? '')) {
+                      await authProv.updateName(name);
+                    }
+                    if (room != (authProv.user?.roomNumber ?? '')) {
+                      await authProv.updateRoomNumber(room);
+                    }
+                    if (mounted) Navigator.of(ctx).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.crisisRed,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: Text(
+                    'Save Changes',
+                    style: AppTextStyles.clashDisplay(
+                      fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

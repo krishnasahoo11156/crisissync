@@ -119,6 +119,7 @@ class StaffLayout extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 // Staff info
+                // Staff info card with edit-name support
                 if (user != null)
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -174,6 +175,14 @@ class StaffLayout extends StatelessWidget {
                             ],
                           ),
                         ),
+                        // Edit name button — updates AuthProvider → notifyListeners()
+                        IconButton(
+                          onPressed: () => _showEditNameDialog(context, user.name),
+                          icon: const Icon(Icons.edit, size: 14, color: AppColors.textMuted),
+                          tooltip: 'Edit name',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
                       ],
                     ),
                   ),
@@ -184,6 +193,71 @@ class StaffLayout extends StatelessWidget {
           // Content
           Expanded(child: child),
         ],
+      ),
+    );
+  }
+
+  /// Edit name dialog for staff — saves via AuthProvider.updateName().
+  /// notifyListeners() is called internally so the sidebar and any other
+  /// context.watch<AuthProvider>() widgets rebuild immediately.
+  void _showEditNameDialog(BuildContext context, String currentName) {
+    final controller = TextEditingController(text: currentName);
+    String? dialogError;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.modal),
+          ),
+          title: Text(
+            'Edit Display Name',
+            style: AppTextStyles.clashDisplay(
+              fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: controller,
+                autofocus: true,
+                style: AppTextStyles.dmSans(fontSize: 14, color: AppColors.textPrimary),
+                decoration: const InputDecoration(
+                  hintText: 'Your display name',
+                  prefixIcon: Icon(Icons.person_outline, color: AppColors.textMuted),
+                ),
+              ),
+              if (dialogError != null) ...[  
+                const SizedBox(height: 8),
+                Text(
+                  dialogError!,
+                  style: AppTextStyles.dmSans(fontSize: 13, color: AppColors.crisisRed),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            OutlinedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final name = controller.text.trim();
+                if (name.isEmpty) {
+                  setDialogState(() => dialogError = 'Name cannot be empty.');
+                  return;
+                }
+                await context.read<AuthProvider>().updateName(name);
+                if (ctx.mounted) Navigator.pop(ctx);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
       ),
     );
   }
