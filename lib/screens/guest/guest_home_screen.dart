@@ -240,32 +240,38 @@ class _GuestHomeScreenState extends State<GuestHomeScreen>
             ],
           ),
         ),
-        // Room chip — tappable to open edit profile sheet
-        Tooltip(
-          message: 'Tap to edit profile',
-          child: GestureDetector(
-            onTap: _showEditProfileSheet,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.badge),
-                border: Border.all(color: Colors.black12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    room.isNotEmpty ? 'Room $room' : 'Set Room',
-                    style: AppTextStyles.jetBrainsMono(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
+        // Room chip — tappable to open edit profile sheet.
+        // Wrapped in Flexible so it shrinks/truncates instead of overflowing.
+        Flexible(
+          child: Tooltip(
+            message: 'Tap to edit profile',
+            child: GestureDetector(
+              onTap: _showEditProfileSheet,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(AppRadius.badge),
+                  border: Border.all(color: Colors.black12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        room.isNotEmpty ? 'Room $room' : 'Set Room',
+                        style: AppTextStyles.jetBrainsMono(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.edit, size: 11, color: Colors.black38),
-                ],
+                    const SizedBox(width: 4),
+                    const Icon(Icons.edit, size: 11, color: Colors.black38),
+                  ],
+                ),
               ),
             ),
           ),
@@ -414,15 +420,14 @@ class _GuestHomeScreenState extends State<GuestHomeScreen>
                       setSheetState(() => sheetError = 'Room number cannot be empty.');
                       return;
                     }
-                    // Update via AuthProvider — notifyListeners() propagates to all watchers
+                    // Update via AuthProvider — notifyListeners() propagates to all watchers.
+                    // Read provider before async gap to avoid use_build_context_synchronously lint.
                     final authProv = context.read<AuthProvider>();
-                    if (name != (authProv.user?.name ?? '')) {
-                      await authProv.updateName(name);
-                    }
-                    if (room != (authProv.user?.roomNumber ?? '')) {
-                      await authProv.updateRoomNumber(room);
-                    }
-                    if (mounted) Navigator.of(ctx).pop();
+                    final currentName = authProv.user?.name ?? '';
+                    final currentRoom = authProv.user?.roomNumber ?? '';
+                    if (name != currentName) await authProv.updateName(name);
+                    if (room != currentRoom) await authProv.updateRoomNumber(room);
+                    if (ctx.mounted) Navigator.of(ctx).pop();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.crisisRed,
