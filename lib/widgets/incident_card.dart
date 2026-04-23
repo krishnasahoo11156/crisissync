@@ -206,12 +206,16 @@ class _IncidentCardState extends State<IncidentCard> {
       children: [
         CrisisTypeIcon(type: i.crisisType, size: 18),
         const SizedBox(width: 8),
-        Text(
-          'Rm ${i.roomNumber}',
-          style: AppTextStyles.clashDisplay(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+        // Flexible so room number truncates rather than overflowing narrow columns
+        Flexible(
+          child: Text(
+            'Rm ${i.roomNumber}',
+            style: AppTextStyles.clashDisplay(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
         const SizedBox(width: 8),
