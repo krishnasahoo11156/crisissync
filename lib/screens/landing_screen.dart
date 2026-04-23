@@ -24,15 +24,18 @@ class _LandingScreenState extends State<LandingScreen> {
 
     if (auth.isLoggedIn) {
       final role = auth.userRole ?? 'guest';
+      // Admin can access any portal directly.
       if (role == 'admin') {
-        context.go(AppRouter.homeForRole(portal == 'admin' ? 'admin' : portal == 'staff' ? 'staff' : 'guest'));
+        context.go(AppRouter.homeForRole(portal));
         return;
       }
+      // If the stored role already matches the requested portal, go directly.
       if (role == portal) {
         context.go(AppRouter.homeForRole(role));
         return;
       }
     }
+    // New user or switching portals — go through auth (any Google account).
     context.go('/auth?portal=$portal');
   }
 

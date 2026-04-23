@@ -30,6 +30,8 @@ service cloud.firestore {
     }
 
     // ─── Users collection ───
+    // Any Google account can sign in to any portal.
+    // Role is stored in Firestore and determines access.
     match /users/{userId} {
       // Any authenticated user can read their own profile.
       // Staff and admin can read all profiles (for staff directory, etc.)
@@ -40,7 +42,7 @@ service cloud.firestore {
       // Users can create their own profile on first sign-in.
       allow create: if isAuth() && request.auth.uid == userId;
 
-      // Users can update their own profile.
+      // Users can update their own profile (name, roomNumber, role, staffRole).
       // Admin can update any profile (for role changes, etc.)
       allow update: if isAuth() && (
         request.auth.uid == userId || isAdmin()

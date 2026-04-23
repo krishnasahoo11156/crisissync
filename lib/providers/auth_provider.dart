@@ -30,33 +30,18 @@ class AuthProvider extends ChangeNotifier {
       }
 
       try {
+        // Try to load existing Firestore profile.
         _user = await AuthService.getUserProfile(firebaseUser.uid);
-        if (_user == null) {
-          // Check seed accounts
-          final email = firebaseUser.email ?? '';
-          final seed = UserModel.seedAccounts.firstWhere(
-            (a) => a['email'] == email,
-            orElse: () => <String, dynamic>{},
-          );
 
-          if (seed.isNotEmpty) {
-            _user = UserModel(
-              uid: firebaseUser.uid,
-              email: email,
-              name: seed['name'] ?? firebaseUser.displayName ?? 'User',
-              role: seed['role'] ?? 'guest',
-              roomNumber: seed['roomNumber'],
-              staffRole: seed['staffRole'],
-              isOnDuty: seed['isOnDuty'] ?? false,
-            );
-          } else {
-            _user = UserModel(
-              uid: firebaseUser.uid,
-              email: email,
-              name: firebaseUser.displayName ?? 'Guest',
-              role: 'guest',
-            );
-          }
+        // If no profile yet, create a default guest profile.
+        // The auth screen will update the role/name via registration flow.
+        if (_user == null) {
+          _user = UserModel(
+            uid: firebaseUser.uid,
+            email: firebaseUser.email ?? '',
+            name: firebaseUser.displayName ?? '',
+            role: 'guest',
+          );
           await AuthService.createOrUpdateUser(_user!);
         }
       } catch (e) {
@@ -68,13 +53,14 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
-  Future<void> signInWithGoogle() async {
+  /// Sign in with Google, assigning [portalRole] to brand-new users.
+  Future<void> signInWithGoogle({String portalRole = 'guest'}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _user = await AuthService.signInWithGoogle();
+      _user = await AuthService.signInWithGoogle(portalRole: portalRole);
     } catch (e) {
       _error = e.toString();
     }
@@ -93,6 +79,20 @@ class AuthProvider extends ChangeNotifier {
     if (_user == null) return;
     await AuthService.updateRoomNumber(_user!.uid, roomNumber);
     _user = _user!.copyWith(roomNumber: roomNumber);
+    notifyListeners();
+  }
+
+  Future<void> updateName(String name) async {
+    if (_user == null) return;
+    await AuthService.updateName(_user!.uid, name);
+    _user = _user!.copyWith(name: name);
+    notifyListeners();
+  }
+
+  Future<void> updateRole(String role, {String? staffRole}) async {
+    if (_user == null) return;
+    await AuthService.updateRole(_user!.uid, role, staffRole: staffRole);
+    _user = _user!.copyWith(role: role, staffRole: staffRole ?? _user!.staffRole);
     notifyListeners();
   }
 

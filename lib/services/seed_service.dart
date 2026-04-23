@@ -29,23 +29,14 @@ class SeedService {
     final List<Map<String, dynamic>> staffAndAdmins = [];
     final List<Map<String, dynamic>> guests = [];
 
-    if (users.isEmpty) {
-      for (final acc in UserModel.seedAccounts) {
-        if (acc['role'] == 'staff' || acc['role'] == 'admin') {
-          staffAndAdmins.add(acc);
-        } else {
-          guests.add(acc);
-        }
-      }
-    } else {
-      for (final u in users) {
-        if (u.role == 'staff' || u.role == 'admin') {
-          staffAndAdmins.add({'uid': u.uid, 'name': u.name, 'role': u.role, 'staffRole': u.staffRole ?? 'Staff'});
-        } else {
-          guests.add({'uid': u.uid, 'name': u.name, 'email': u.email, 'roomNumber': u.roomNumber ?? '101'});
-        }
+    for (final u in users) {
+      if (u.role == 'staff' || u.role == 'admin') {
+        staffAndAdmins.add({'uid': u.uid, 'name': u.name, 'role': u.role, 'staffRole': u.staffRole ?? 'Staff'});
+      } else {
+        guests.add({'uid': u.uid, 'name': u.name, 'email': u.email, 'roomNumber': u.roomNumber ?? '101'});
       }
     }
+
 
     if (staffAndAdmins.isEmpty || guests.isEmpty) return;
 

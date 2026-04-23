@@ -10,51 +10,34 @@ class AuthService {
   static Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   /// Sign in with Google (web popup).
-  static Future<UserModel?> signInWithGoogle() async {
+  ///
+  /// [portalRole] — the role the user is signing in for: 'guest', 'staff', or 'admin'.
+  /// If the user already has a Firestore profile, it is returned as-is (their stored role wins).
+  /// If it's a brand-new user, a minimal profile is created with [portalRole].
+  static Future<UserModel?> signInWithGoogle({String portalRole = 'guest'}) async {
     try {
       final GoogleAuthProvider googleProvider = GoogleAuthProvider();
       googleProvider.addScope('email');
       googleProvider.addScope('profile');
-      // Force the account chooser to always appear so users can
-      // switch between Guest / Staff / Admin Google accounts.
-      googleProvider.setCustomParameters({
-        'prompt': 'select_account',
-      });
+      // Always show the account chooser so users can pick any account.
+      googleProvider.setCustomParameters({'prompt': 'select_account'});
 
       final UserCredential result = await _auth.signInWithPopup(googleProvider);
       final User? user = result.user;
       if (user == null) return null;
 
-      // Check if user exists in Firestore
+      // If user already has a profile in Firestore, return it unchanged.
       UserModel? userModel = await getUserProfile(user.uid);
       if (userModel != null) return userModel;
 
-      // Check pre-configured accounts by email
-      final email = user.email ?? '';
-      final seedAccount = UserModel.seedAccounts.firstWhere(
-        (a) => a['email'] == email,
-        orElse: () => {},
+      // Brand-new user — assign the role for the portal they chose.
+      userModel = UserModel(
+        uid: user.uid,
+        email: user.email ?? '',
+        name: user.displayName ?? '',
+        role: portalRole,
+        isOnDuty: portalRole == 'staff',
       );
-
-      if (seedAccount.isNotEmpty) {
-        userModel = UserModel(
-          uid: user.uid,
-          email: email,
-          name: seedAccount['name'] ?? user.displayName ?? 'User',
-          role: seedAccount['role'] ?? 'guest',
-          roomNumber: seedAccount['roomNumber'],
-          staffRole: seedAccount['staffRole'],
-          isOnDuty: seedAccount['isOnDuty'] ?? false,
-        );
-      } else {
-        // New unknown user — default to guest
-        userModel = UserModel(
-          uid: user.uid,
-          email: email,
-          name: user.displayName ?? 'Guest',
-          role: 'guest',
-        );
-      }
 
       await _firestore.collection('users').doc(user.uid).set(userModel.toFirestore());
       return userModel;
@@ -96,6 +79,18 @@ class AuthService {
     await _firestore.collection('users').doc(uid).update({'roomNumber': roomNumber});
   }
 
+  /// Update user display name.
+  static Future<void> updateName(String uid, String name) async {
+    await _firestore.collection('users').doc(uid).update({'name': name});
+  }
+
+  /// Update user role (used when completing staff/admin registration).
+  static Future<void> updateRole(String uid, String role, {String? staffRole}) async {
+    final data = <String, dynamic>{'role': role};
+    if (staffRole != null) data['staffRole'] = staffRole;
+    await _firestore.collection('users').doc(uid).update(data);
+  }
+
   /// Update FCM token.
   static Future<void> updateFcmToken(String uid, String token) async {
     await _firestore.collection('users').doc(uid).update({'fcmToken': token});
@@ -104,28 +99,6 @@ class AuthService {
   /// Sign out.
   static Future<void> signOut() async {
     await _auth.signOut();
-  }
-
-  /// Seed pre-configured accounts to Firestore.
-  static Future<void> seedAccounts() async {
-    final batch = _firestore.batch();
-    for (final account in UserModel.seedAccounts) {
-      // Check if already seeded by email
-      final query = await _firestore
-          .collection('users')
-          .where('email', isEqualTo: account['email'])
-          .limit(1)
-          .get();
-      if (query.docs.isEmpty) {
-        final docRef = _firestore.collection('users').doc();
-        batch.set(docRef, {
-          ...account,
-          'isOnDuty': account['isOnDuty'] ?? false,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      }
-    }
-    await batch.commit();
   }
 
   /// Get all staff users.

@@ -9,7 +9,7 @@ import 'package:crisissync/config/theme.dart';
 import 'package:crisissync/providers/auth_provider.dart';
 import 'package:crisissync/providers/incident_provider.dart';
 import 'package:crisissync/providers/staff_provider.dart';
-import 'package:crisissync/services/auth_service.dart';
+
 import 'package:crisissync/services/email_service.dart';
 
 void main() async {
@@ -26,13 +26,7 @@ void main() async {
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
 
-  // Seed pre-configured accounts (non-blocking)
-  try {
-    await AuthService.seedAccounts().timeout(const Duration(seconds: 5));
-  } catch (e) {
-    // Seeding may fail if already done, no permissions, or offline — non-critical
-    debugPrint('Seed accounts: $e');
-  }
+
 
   // Initialize EmailJS
   EmailService.init();
