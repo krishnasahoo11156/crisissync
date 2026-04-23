@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:crisissync/config/theme.dart';
+import 'package:crisissync/models/incident_model.dart';
 import 'package:crisissync/providers/auth_provider.dart';
 import 'package:crisissync/services/incident_service.dart';
 import 'package:crisissync/services/fcm_service.dart';
@@ -91,6 +92,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen>
     final user = auth.user!;
 
     try {
+      // Step 1: Create the incident (must succeed before anything else).
       final incidentId = await IncidentService.createIncident(
         guestUid: user.uid,
         guestName: user.name,
@@ -100,39 +102,151 @@ class _GuestHomeScreenState extends State<GuestHomeScreen>
         description: _description,
       );
 
-      // Notify staff
-      await FcmService.notifyOnDutyStaff(
+      // Step 2: Fire-and-forget side effects — don't block or fail the main flow.
+      FcmService.notifyOnDutyStaff(
         incidentId: incidentId,
         crisisType: crisisType,
         severity: 3,
         roomNumber: user.roomNumber ?? 'N/A',
-      );
+      ).catchError((_) {});
 
-      // Send email
-      try {
-        await EmailService.sendIncidentCreated(
-          guestEmail: user.email,
-          guestName: user.name,
-          incidentId: incidentId,
-          crisisType: crisisType,
-          roomNumber: user.roomNumber ?? 'N/A',
-          timestamp: DateFormat('MMM dd, yyyy – hh:mm a').format(DateTime.now()),
-        );
-      } catch (_) {}
+      EmailService.sendIncidentCreated(
+        guestEmail: user.email,
+        guestName: user.name,
+        incidentId: incidentId,
+        crisisType: crisisType,
+        roomNumber: user.roomNumber ?? 'N/A',
+        timestamp: DateFormat('MMM dd, yyyy – hh:mm a').format(DateTime.now()),
+      ).catchError((_) {});
 
+      // Step 3: Clear the loading state and show confirmation dialog.
+      if (!mounted) return;
+      setState(() => _isSubmitting = false);
+      _descController.clear();
+      _description = '';
+
+      // Step 4: Show success dialog, then navigate to live status screen.
+      await _showIncidentCreatedDialog(incidentId, crisisType, user.roomNumber ?? 'N/A');
       if (mounted) context.go('/guest/status/$incidentId');
+
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to submit: $e'),
             backgroundColor: AppColors.crisisRed,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
     } finally {
+      // Ensure spinner is always cleared even on unexpected error.
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  /// Shows a confirmation dialog after the incident is created.
+  /// Gives the user a clear signal that their report was received
+  /// and offers a direct link to the live status screen.
+  Future<void> _showIncidentCreatedDialog(
+    String incidentId,
+    String crisisType,
+    String roomNumber,
+  ) async {
+    final typeLabel = crisisType[0].toUpperCase() + crisisType.substring(1);
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Animated check icon
+              Container(
+                width: 64, height: 64,
+                decoration: BoxDecoration(
+                  color: AppColors.signalTeal.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check_circle_rounded, color: AppColors.signalTeal, size: 38),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Emergency Reported!',
+                style: AppTextStyles.clashDisplay(
+                  fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Your $typeLabel alert for Room $roomNumber has been sent to staff.',
+                style: AppTextStyles.dmSans(fontSize: 14, color: Colors.black54),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              // Incident ID chip
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F0),
+                  borderRadius: BorderRadius.circular(AppRadius.badge),
+                  border: Border.all(color: Colors.black12),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.tag, size: 14, color: Colors.black38),
+                    const SizedBox(width: 4),
+                    Text(
+                      incidentId.length > 12 ? incidentId.substring(0, 12).toUpperCase() : incidentId.toUpperCase(),
+                      style: AppTextStyles.jetBrainsMono(
+                        fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Primary CTA: go to live status
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  icon: const Icon(Icons.radar, size: 18),
+                  label: const Text('Track Live Status'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.crisisRed,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.button),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Secondary: stay on home
+              TextButton(
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                  // Override the post-dialog navigation by pushing a no-op
+                  // We go back to guest home instead of status screen
+                  if (mounted) context.go('/guest');
+                },
+                child: Text(
+                  'Stay on Home',
+                  style: AppTextStyles.dmSans(fontSize: 13, color: Colors.black45),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _submitWithType(String type) async {
@@ -172,6 +286,11 @@ class _GuestHomeScreenState extends State<GuestHomeScreen>
                 // Text input
                 _buildTextInput(),
                 const SizedBox(height: 24),
+
+                // Live incidents section — shows active/recent reports in real time
+                _buildMyIncidentsSection(user.uid),
+
+                const SizedBox(height: 8),
                 // Concern form link
                 TextButton(
                   onPressed: () => context.go('/guest/concern'),
@@ -188,7 +307,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen>
                 TextButton(
                   onPressed: () => context.go('/guest/history'),
                   child: Text(
-                    'View past incidents →',
+                    'View all past incidents →',
                     style: AppTextStyles.dmSans(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
@@ -215,6 +334,154 @@ class _GuestHomeScreenState extends State<GuestHomeScreen>
         ),
       ),
     );
+  }
+
+  /// Live incidents section — streams the guest's own incidents from Firestore
+  /// so the home screen always shows their current active reports in real time.
+  Widget _buildMyIncidentsSection(String uid) {
+    return StreamBuilder<List<IncidentModel>>(
+      stream: IncidentService.streamGuestIncidents(uid),
+      builder: (context, snapshot) {
+        final allIncidents = snapshot.data ?? [];
+        // Show only non-resolved incidents on the home screen.
+        final activeIncidents = allIncidents
+            .where((i) => i.status != 'resolved')
+            .toList();
+
+        if (activeIncidents.isEmpty) return const SizedBox.shrink();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Section header
+            Row(
+              children: [
+                Container(
+                  width: 3, height: 14,
+                  decoration: BoxDecoration(
+                    color: AppColors.crisisRed,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'YOUR ACTIVE REPORTS',
+                  style: AppTextStyles.dmSans(
+                    fontSize: 11, fontWeight: FontWeight.w700,
+                    color: Colors.black45, letterSpacing: 1,
+                  ),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => context.go('/guest/history'),
+                  style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
+                  child: Text(
+                    'See all',
+                    style: AppTextStyles.dmSans(fontSize: 12, color: AppColors.crisisRed),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            // One card per active incident
+            ...activeIncidents.map((incident) => _buildActiveIncidentCard(incident)),
+            const SizedBox(height: 8),
+          ],
+        );
+      },
+    );
+  }
+
+  /// A compact card for one active incident shown on the home screen.
+  Widget _buildActiveIncidentCard(IncidentModel incident) {
+    final statusColor = AppColors.colorForStatus(incident.status);
+    final isUrgent = incident.severity >= 4;
+
+    return GestureDetector(
+      onTap: () => context.go('/guest/status/${incident.id}'),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(
+            color: isUrgent
+                ? AppColors.crisisRed.withValues(alpha: 0.4)
+                : Colors.black12,
+          ),
+          boxShadow: isUrgent
+              ? [BoxShadow(color: AppColors.crisisRed.withValues(alpha: 0.08), blurRadius: 12)]
+              : null,
+        ),
+        child: Row(
+          children: [
+            // Status dot
+            Container(
+              width: 10, height: 10,
+              decoration: BoxDecoration(
+                color: statusColor,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(color: statusColor.withValues(alpha: 0.4), blurRadius: 6, spreadRadius: 1),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${incident.crisisType.toUpperCase()} — Room ${incident.roomNumber}',
+                    style: AppTextStyles.dmSans(
+                      fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _statusLabel(incident.status),
+                    style: AppTextStyles.dmSans(fontSize: 12, color: statusColor),
+                  ),
+                ],
+              ),
+            ),
+            // Track button
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.crisisRed.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(AppRadius.badge),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Track',
+                    style: AppTextStyles.dmSans(
+                      fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.crisisRed,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.arrow_forward_ios, size: 10, color: AppColors.crisisRed),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'active': return 'Notifying staff…';
+      case 'accepted': return 'Staff accepted — help is on the way';
+      case 'responding': return 'Staff responding';
+      case 'escalated': return 'Escalated to senior staff';
+      default: return status;
+    }
   }
 
   Widget _buildTopBar(String name, String room, String uid) {
