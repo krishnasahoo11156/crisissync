@@ -1,0 +1,16 @@
+node_modules
+.dart_tool
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/app
+build/ios
+build/macos
+build/windows
+build/linux
+android
+ios
+test
+.git
+README.md
+pubspec.lock
