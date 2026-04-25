@@ -133,7 +133,7 @@ class _GuestStatusScreenState extends State<GuestStatusScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.borderDark),
+        border: Border.all(color: AppColors.borderGhost),
       ),
       child: Column(
         children: [
@@ -183,7 +183,7 @@ class _GuestStatusScreenState extends State<GuestStatusScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.borderDark),
+        border: Border.all(color: AppColors.borderGhost),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,7 +250,7 @@ class _GuestStatusScreenState extends State<GuestStatusScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.borderDark),
+        border: Border.all(color: AppColors.borderGhost),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -327,7 +327,7 @@ class _GuestStatusScreenState extends State<GuestStatusScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.borderDark),
+        border: Border.all(color: AppColors.borderGhost),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -357,7 +357,7 @@ class _GuestStatusScreenState extends State<GuestStatusScreen> {
                 label: Text('${r.name} (${r.role})'),
                 labelStyle: AppTextStyles.dmSans(fontSize: 12, color: AppColors.textPrimary),
                 backgroundColor: AppColors.elevated,
-                side: const BorderSide(color: AppColors.borderDark),
+                side: const BorderSide(color: AppColors.borderGhost),
               );
             }).toList(),
           ),

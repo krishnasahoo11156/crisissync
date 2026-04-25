@@ -183,7 +183,7 @@ class _StaffIncidentDetailScreenState extends State<StaffIncidentDetailScreen> {
                   padding: const EdgeInsets.all(16),
                   decoration: const BoxDecoration(
                     color: AppColors.void_,
-                    border: Border(top: BorderSide(color: AppColors.borderDark)),
+                    border: Border(top: BorderSide(color: AppColors.borderGhost)),
                   ),
                   child: ElevatedButton(
                     onPressed: () => _showResolveDialog(incident, user),
@@ -266,7 +266,7 @@ class _StaffIncidentDetailScreenState extends State<StaffIncidentDetailScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.borderDark),
+        border: Border.all(color: AppColors.borderGhost),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -402,7 +402,7 @@ class _StaffIncidentDetailScreenState extends State<StaffIncidentDetailScreen> {
               CircularProgressIndicator(
                 value: fraction,
                 strokeWidth: 3,
-                backgroundColor: AppColors.borderDark,
+                backgroundColor: AppColors.borderGhost,
                 valueColor: const AlwaysStoppedAnimation(AppColors.signalTeal),
               ),
               Text(
@@ -430,7 +430,7 @@ class _StaffIncidentDetailScreenState extends State<StaffIncidentDetailScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.borderDark),
+        border: Border.all(color: AppColors.borderGhost),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -461,7 +461,7 @@ class _StaffIncidentDetailScreenState extends State<StaffIncidentDetailScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.borderDark),
+        border: Border.all(color: AppColors.borderGhost),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -500,7 +500,7 @@ class _StaffIncidentDetailScreenState extends State<StaffIncidentDetailScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.borderDark),
+        border: Border.all(color: AppColors.borderGhost),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,7 +539,7 @@ class _StaffIncidentDetailScreenState extends State<StaffIncidentDetailScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.borderDark),
+        border: Border.all(color: AppColors.borderGhost),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -556,7 +556,7 @@ class _StaffIncidentDetailScreenState extends State<StaffIncidentDetailScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.void_,
                   borderRadius: BorderRadius.circular(AppRadius.badge),
-                  border: Border.all(color: AppColors.borderDark),
+                  border: Border.all(color: AppColors.borderGhost),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -581,7 +581,7 @@ class _StaffIncidentDetailScreenState extends State<StaffIncidentDetailScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.borderDark),
+        border: Border.all(color: AppColors.borderGhost),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -735,7 +735,7 @@ class _ChecklistItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppRadius.button),
-          border: Border(left: BorderSide(color: isDone ? AppColors.signalTeal : AppColors.borderDark, width: 3)),
+          border: Border(left: BorderSide(color: isDone ? AppColors.signalTeal : AppColors.borderGhost, width: 3)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -748,7 +748,7 @@ class _ChecklistItem extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isDone ? AppColors.signalTeal : Colors.transparent,
                     shape: BoxShape.circle,
-                    border: Border.all(color: isDone ? AppColors.signalTeal : AppColors.borderDark, width: 2),
+                    border: Border.all(color: isDone ? AppColors.signalTeal : AppColors.borderGhost, width: 2),
                   ),
                   child: isDone ? const Icon(Icons.check, size: 14, color: Colors.white) : null,
                 ),

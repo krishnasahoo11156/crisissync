@@ -721,23 +721,23 @@ class _GuestHomeScreenState extends State<GuestHomeScreen>
       onLongPressEnd: (_) => _onHoldEnd(),
       onLongPressCancel: _onHoldEnd,
       child: SizedBox(
-        width: 220,
-        height: 220,
+        width: 240,
+        height: 240,
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Outer ring
+            // Outer ring with glow
             AnimatedBuilder(
               animation: _pulseController1,
               builder: (context, _) => Transform.scale(
-                scale: 1.0 + (_pulseController1.value * 0.08),
+                scale: 1.0 + (_pulseController1.value * 0.1),
                 child: Container(
-                  width: 220,
-                  height: 220,
+                  width: 240,
+                  height: 240,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.crisisRed.withValues(alpha: 0.15),
+                      color: AppColors.crisisRed.withValues(alpha: 0.12 + _pulseController1.value * 0.08),
                       width: 1.5,
                     ),
                   ),
@@ -748,40 +748,68 @@ class _GuestHomeScreenState extends State<GuestHomeScreen>
             AnimatedBuilder(
               animation: _pulseController2,
               builder: (context, _) => Transform.scale(
-                scale: 1.0 + (_pulseController2.value * 0.08),
+                scale: 1.0 + (_pulseController2.value * 0.1),
                 child: Container(
-                  width: 180,
-                  height: 180,
+                  width: 195,
+                  height: 195,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.crisisRed.withValues(alpha: 0.28),
+                      color: AppColors.crisisRed.withValues(alpha: 0.2 + _pulseController2.value * 0.1),
                       width: 1.5,
                     ),
                   ),
                 ),
               ),
             ),
-            // Main button
-            Container(
-              width: 140,
-              height: 140,
-              decoration: const BoxDecoration(
-                color: AppColors.crisisRed,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: _isSubmitting
-                    ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 3)
-                    : Text(
-                        'SOS',
-                        style: AppTextStyles.clashDisplay(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: 0.08 * 32,
+            // Main button with gradient
+            AnimatedBuilder(
+              animation: _pulseController1,
+              builder: (context, _) => Container(
+                width: 150,
+                height: 150,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppColors.crisisRed, AppColors.crisisRedDim],
+                  ),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.crisisRed.withValues(alpha: 0.25 + _pulseController1.value * 0.15),
+                      blurRadius: 32 + _pulseController1.value * 16,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: _isSubmitting
+                      ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 3)
+                      : Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'SOS',
+                              style: AppTextStyles.clashDisplay(
+                                fontSize: 36,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: 4,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'HOLD 2s',
+                              style: AppTextStyles.jetBrainsMono(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                ),
               ),
             ),
             // Hold progress arc
@@ -789,8 +817,8 @@ class _GuestHomeScreenState extends State<GuestHomeScreen>
               AnimatedBuilder(
                 animation: _holdAnimation,
                 builder: (context, _) => SizedBox(
-                  width: 148,
-                  height: 148,
+                  width: 158,
+                  height: 158,
                   child: CustomPaint(
                     painter: _ArcPainter(progress: _holdAnimation.value),
                   ),
@@ -831,24 +859,22 @@ class _GuestHomeScreenState extends State<GuestHomeScreen>
 
   Widget _buildTextInput() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: Colors.black12),
+        border: Border.all(color: const Color(0xFFE8E8EC)),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 16, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Describe your emergency',
-            style: AppTextStyles.dmSans(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8),
+          Row(children: [
+            Container(padding: const EdgeInsets.all(6), decoration: BoxDecoration(color: AppColors.crisisRed.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(6)), child: const Icon(Icons.edit_note, color: AppColors.crisisRed, size: 18)),
+            const SizedBox(width: 10),
+            Text('Describe your emergency', style: AppTextStyles.dmSans(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.black87)),
+          ]),
+          const SizedBox(height: 14),
           TextField(
             controller: _descController,
             maxLines: 3,
@@ -856,34 +882,24 @@ class _GuestHomeScreenState extends State<GuestHomeScreen>
             decoration: InputDecoration(
               hintText: 'Type details here...',
               filled: true,
-              fillColor: const Color(0xFFF5F5F0),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.button),
-                borderSide: const BorderSide(color: Colors.black12),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.button),
-                borderSide: const BorderSide(color: Colors.black12),
-              ),
+              fillColor: const Color(0xFFF8F8F6),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.button), borderSide: const BorderSide(color: Color(0xFFE8E8EC))),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.button), borderSide: const BorderSide(color: Color(0xFFE8E8EC))),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.button), borderSide: const BorderSide(color: AppColors.crisisRed, width: 1.5)),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: _isSubmitting ? null : _submitText,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.crisisRed,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
+                elevation: 0,
               ),
-              child: Text(
-                'Submit Emergency Report',
-                style: AppTextStyles.clashDisplay(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
+              child: Text('Submit Emergency Report', style: AppTextStyles.clashDisplay(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
             ),
           ),
         ],
@@ -892,7 +908,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen>
   }
 }
 
-class _QuickTypeBtn extends StatelessWidget {
+class _QuickTypeBtn extends StatefulWidget {
   final String label;
   final IconData icon;
   final Color color;
@@ -906,31 +922,42 @@ class _QuickTypeBtn extends StatelessWidget {
   });
 
   @override
+  State<_QuickTypeBtn> createState() => _QuickTypeBtnState();
+}
+
+class _QuickTypeBtnState extends State<_QuickTypeBtn> {
+  bool _hovered = false;
+
+  @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          height: 48,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppRadius.card),
-            border: Border.all(color: Colors.black12),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: color, size: 20),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: AppTextStyles.dmSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: AppAnimation.fast,
+            height: 52,
+            decoration: BoxDecoration(
+              color: _hovered ? widget.color.withValues(alpha: 0.06) : Colors.white,
+              borderRadius: BorderRadius.circular(AppRadius.card),
+              border: Border.all(color: _hovered ? widget.color.withValues(alpha: 0.3) : Colors.black12),
+              boxShadow: _hovered ? [BoxShadow(color: widget.color.withValues(alpha: 0.08), blurRadius: 12)] : null,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(color: widget.color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
+                  child: Icon(widget.icon, color: widget.color, size: 18),
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Text(widget.label, style: AppTextStyles.dmSans(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87)),
+              ],
+            ),
           ),
         ),
       ),

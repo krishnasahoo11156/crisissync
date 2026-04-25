@@ -130,12 +130,12 @@ class _AdminIncidentsScreenState extends State<AdminIncidentsScreen>
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: AppColors.surfaceContainer,
                   borderRadius: BorderRadius.circular(AppRadius.card),
                   border: Border.all(
                     color: i.status == 'active' || i.status == 'escalated'
-                        ? AppColors.crisisRed.withOpacity(0.4)
-                        : AppColors.borderDark,
+                        ? AppColors.crisisRed.withValues(alpha: 0.4)
+                        : AppColors.borderGhost,
                   ),
                 ),
                 child: Row(
@@ -222,7 +222,7 @@ class _AdminIncidentsScreenState extends State<AdminIncidentsScreen>
                         topLeft: Radius.circular(AppRadius.card),
                         topRight: Radius.circular(AppRadius.card),
                       ),
-                      border: Border.all(color: AppColors.borderDark),
+                      border: Border.all(color: AppColors.borderGhost),
                     ),
                     child: Row(
                       children: [
@@ -241,7 +241,7 @@ class _AdminIncidentsScreenState extends State<AdminIncidentsScreen>
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.borderDark),
+                        border: Border.all(color: AppColors.borderGhost),
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(AppRadius.card),
                           bottomRight: Radius.circular(AppRadius.card),
@@ -258,7 +258,7 @@ class _AdminIncidentsScreenState extends State<AdminIncidentsScreen>
                                   onTap: () => _showDetail(context, i),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                    color: isEven ? AppColors.surface : const Color(0xFF151515),
+                                    color: isEven ? AppColors.surface : AppColors.surfaceContainer,
                                     child: Row(
                                       children: [
                                         SizedBox(width: 80, child: Text(i.id.length > 8 ? i.id.substring(0, 8) : i.id, style: AppTextStyles.jetBrainsMono(fontSize: 11, color: AppColors.textMuted))),
@@ -315,7 +315,7 @@ class _AdminIncidentsScreenState extends State<AdminIncidentsScreen>
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.button),
-        border: Border.all(color: AppColors.borderDark),
+        border: Border.all(color: AppColors.borderGhost),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -351,7 +351,7 @@ class _AdminIncidentsScreenState extends State<AdminIncidentsScreen>
     showDialog(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.elevated,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.modal)),
         child: Container(
           width: 600,

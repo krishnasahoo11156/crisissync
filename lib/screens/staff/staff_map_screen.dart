@@ -66,7 +66,7 @@ class _StaffMapScreenState extends State<StaffMapScreen> {
                             decoration: BoxDecoration(
                               color: _selectedFloor == f ? AppColors.crisisRed : AppColors.surface,
                               borderRadius: BorderRadius.circular(AppRadius.badge),
-                              border: Border.all(color: _selectedFloor == f ? AppColors.crisisRed : AppColors.borderDark),
+                              border: Border.all(color: _selectedFloor == f ? AppColors.crisisRed : AppColors.borderGhost),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -93,9 +93,9 @@ class _StaffMapScreenState extends State<StaffMapScreen> {
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 24),
               decoration: BoxDecoration(
-                color: const Color(0xFF151515),
+                color: AppColors.surfaceContainer,
                 borderRadius: BorderRadius.circular(AppRadius.card),
-                border: Border.all(color: AppColors.borderDark),
+                border: Border.all(color: AppColors.borderGhost),
               ),
               child: filtered.isEmpty
                   ? Center(
@@ -129,7 +129,7 @@ class _StaffMapScreenState extends State<StaffMapScreen> {
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
               color: AppColors.void_,
-              border: Border(top: BorderSide(color: AppColors.borderDark)),
+              border: Border(top: BorderSide(color: AppColors.borderGhost)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

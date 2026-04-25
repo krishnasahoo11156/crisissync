@@ -15,7 +15,7 @@ class ErrorCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.borderDark),
+        border: Border.all(color: AppColors.borderGhost),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

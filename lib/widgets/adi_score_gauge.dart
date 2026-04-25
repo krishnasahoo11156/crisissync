@@ -46,7 +46,7 @@ class _ADIGaugePainter extends CustomPainter {
 
     // Background arc
     final bgPaint = Paint()
-      ..color = AppColors.borderDark
+      ..color = AppColors.borderGhost
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4
       ..strokeCap = StrokeCap.round;

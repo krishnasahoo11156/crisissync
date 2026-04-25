@@ -123,7 +123,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.borderDark),
+        border: Border.all(color: AppColors.borderGhost),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,7 +279,7 @@ class _AdminAnalyticsScreenState extends State<AdminAnalyticsScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: Border.all(color: AppColors.borderDark),
+        border: Border.all(color: AppColors.borderGhost),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

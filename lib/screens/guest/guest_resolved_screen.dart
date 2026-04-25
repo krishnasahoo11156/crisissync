@@ -118,7 +118,7 @@ class _GuestResolvedScreenState extends State<GuestResolvedScreen>
                         decoration: BoxDecoration(
                           color: AppColors.surface,
                           borderRadius: BorderRadius.circular(AppRadius.card),
-                          border: Border.all(color: AppColors.borderDark),
+                          border: Border.all(color: AppColors.borderGhost),
                         ),
                         child: Text(
                           '"${incident.resolvedBy!['notes']}"',
@@ -140,7 +140,7 @@ class _GuestResolvedScreenState extends State<GuestResolvedScreen>
                       decoration: BoxDecoration(
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(AppRadius.card),
-                        border: Border.all(color: AppColors.borderDark),
+                        border: Border.all(color: AppColors.borderGhost),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

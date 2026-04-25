@@ -94,7 +94,7 @@ class GuestHistoryScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 ...recentIncidents.map((i) => _buildIncidentTile(context, i, isRecent: true)),
                 const SizedBox(height: 20),
-                const Divider(color: AppColors.borderDark),
+                const Divider(color: AppColors.borderGhost),
                 const SizedBox(height: 12),
               ],
 
@@ -138,12 +138,12 @@ class GuestHistoryScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isRecent ? AppColors.surface.withOpacity(0.8) : AppColors.surface,
+        color: isRecent ? AppColors.surface.withValues(alpha: 0.8) : AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(
           color: isRecent && (i.status == 'active' || i.status == 'accepted')
-              ? AppColors.crisisRed.withOpacity(0.4)
-              : AppColors.borderDark,
+              ? AppColors.crisisRed.withValues(alpha: 0.4)
+              : AppColors.borderGhost,
         ),
       ),
       child: InkWell(

@@ -91,7 +91,7 @@ class _AdminVenueScreenState extends State<AdminVenueScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.surface,
                       borderRadius: BorderRadius.circular(AppRadius.card),
-                      border: Border.all(color: AppColors.borderDark),
+                      border: Border.all(color: AppColors.borderGhost),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -133,7 +133,7 @@ class _AdminVenueScreenState extends State<AdminVenueScreen> {
                                       decoration: BoxDecoration(
                                         color: AppColors.surface,
                                         borderRadius: BorderRadius.circular(4),
-                                        border: Border.all(color: AppColors.borderDark),
+                                        border: Border.all(color: AppColors.borderGhost),
                                       ),
                                       child: Text(room, style: AppTextStyles.jetBrainsMono(fontSize: 11, color: AppColors.textMuted)),
                                     )).toList(),
@@ -153,7 +153,7 @@ class _AdminVenueScreenState extends State<AdminVenueScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.surface,
                       borderRadius: BorderRadius.circular(AppRadius.card),
-                      border: Border.all(color: AppColors.borderDark),
+                      border: Border.all(color: AppColors.borderGhost),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

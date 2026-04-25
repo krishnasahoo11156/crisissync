@@ -57,7 +57,7 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
                   topLeft: Radius.circular(AppRadius.card),
                   topRight: Radius.circular(AppRadius.card),
                 ),
-                border: Border.all(color: AppColors.borderDark),
+                border: Border.all(color: AppColors.borderGhost),
               ),
               child: Row(
                 children: [
@@ -79,7 +79,7 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
                       ? Center(child: Text('No staff configured', style: AppTextStyles.dmSans(color: AppColors.textMuted)))
                       : Container(
                           decoration: BoxDecoration(
-                            border: Border.all(color: AppColors.borderDark),
+                            border: Border.all(color: AppColors.borderGhost),
                             borderRadius: const BorderRadius.only(
                               bottomLeft: Radius.circular(AppRadius.card),
                               bottomRight: Radius.circular(AppRadius.card),
@@ -92,7 +92,7 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
                               final isEven = index % 2 == 0;
                               return Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                color: isEven ? AppColors.surface : const Color(0xFF151515),
+                                color: isEven ? AppColors.surface : AppColors.surfaceContainer,
                                 child: Row(
                                   children: [
                                     // Avatar

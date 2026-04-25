@@ -23,8 +23,10 @@ class StaffHistoryScreen extends StatelessWidget {
           children: [
             Text(
               'Resolved Incidents',
-              style: AppTextStyles.clashDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              style: AppTextStyles.clashDisplay(fontSize: 26, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
             ),
+            const SizedBox(height: 6),
+            Text('Completed and archived cases', style: AppTextStyles.dmSans(fontSize: 14, color: AppColors.textMuted)),
             const SizedBox(height: 24),
             Expanded(
               child: StreamBuilder<List<IncidentModel>>(
@@ -71,7 +73,7 @@ class StaffHistoryScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: AppColors.signalTeal.withOpacity(0.1),
+                                color: AppColors.signalTeal.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(AppRadius.badge),
                               ),
                               child: Text('${recentIncidents.length}', style: AppTextStyles.jetBrainsMono(fontSize: 11, color: AppColors.signalTeal)),
@@ -81,7 +83,7 @@ class StaffHistoryScreen extends StatelessWidget {
                         const SizedBox(height: 12),
                         ...recentIncidents.map((i) => _buildIncidentTile(context, i, highlight: true)),
                         const SizedBox(height: 16),
-                        const Divider(color: AppColors.borderDark),
+                        const Divider(color: AppColors.borderGhost),
                         const SizedBox(height: 16),
                       ],
 
@@ -126,10 +128,10 @@ class StaffHistoryScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.surfaceContainer,
         borderRadius: BorderRadius.circular(AppRadius.card),
         border: Border.all(
-          color: highlight ? AppColors.signalTeal.withOpacity(0.3) : AppColors.borderDark,
+          color: highlight ? AppColors.signalTeal.withValues(alpha: 0.3) : AppColors.borderGhost,
         ),
       ),
       child: InkWell(
