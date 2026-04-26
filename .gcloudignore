@@ -1,0 +1,58 @@
+# =============================================
+# .gcloudignore - Controls what gcloud uploads
+# =============================================
+
+# Start from .gitignore defaults
+#!include:.gitignore
+
+# ---- Flutter/Dart (not needed for Cloud Build) ----
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+pubspec.lock
+
+# ---- Platform build artifacts (not needed) ----
+build/app/
+build/ios/
+build/macos/
+build/windows/
+build/linux/
+
+# ---- DO NOT ignore build/web — we need it! ----
+# (build/web is the Flutter web output that Dockerfile copies)
+
+# ---- Other unnecessary files ----
+android/
+ios/
+linux/
+macos/
+windows/
+test/
+.git/
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+*.log
+*.class
+*.pyc
+*.swp
+node_modules/
+README.md
+*.md
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+**/doc/api/
+app.*.symbols
+app.*.map.json
+/coverage/
